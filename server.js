@@ -19,6 +19,7 @@ app.use(express.json());
 const policiesFile = path.join(__dirname, 'src', 'data', 'policies.json');
 const productsFile = path.join(__dirname, 'src', 'data', 'products.json');
 const galleryFile = path.join(__dirname, 'src', 'data', 'gallery.json');
+const downloadsFile = path.join(__dirname, 'src', 'data', 'downloads.json');
 const publicDir = path.join(__dirname, 'public');
 
 // Serve static files from public directory
@@ -192,6 +193,55 @@ app.post('/api/upload-gallery', (req, res) => {
       type: type
     });
   });
+});
+
+// Get Downloads
+app.get('/api/downloads', (req, res) => {
+  try {
+    const data = fs.readFileSync(downloadsFile, 'utf8');
+    res.json(JSON.parse(data));
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to read downloads' });
+  }
+});
+
+// Update Downloads
+app.post('/api/downloads', (req, res) => {
+  try {
+    const newDownloads = req.body;
+    fs.writeFileSync(downloadsFile, JSON.stringify(newDownloads, null, 2), 'utf8');
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to write downloads' });
+  }
+});
+
+// Delete Download Item
+app.delete('/api/downloads/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = JSON.parse(fs.readFileSync(downloadsFile, 'utf8'));
+    const itemIndex = data.findIndex(item => item.id === id);
+
+    if (itemIndex > -1) {
+      const item = data[itemIndex];
+      if (item.fileUrl) {
+        const filePath = path.join(publicDir, item.fileUrl.replace(/^\//, ''));
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
+
+      data.splice(itemIndex, 1);
+      fs.writeFileSync(downloadsFile, JSON.stringify(data, null, 2), 'utf8');
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ error: 'Item not found' });
+    }
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).json({ error: 'Failed to delete download item' });
+  }
 });
 
 app.listen(port, () => {
