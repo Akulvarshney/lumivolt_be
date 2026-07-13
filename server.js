@@ -31,7 +31,8 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'policy-' + uniqueSuffix + path.extname(file.originalname));
+    const prefix = file.fieldname === 'image' ? 'product-' : (file.fieldname === 'pdf' ? 'policy-' : 'file-');
+    cb(null, prefix + uniqueSuffix + path.extname(file.originalname));
   }
 });
 const upload = multer({ storage: storage });
