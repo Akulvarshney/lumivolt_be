@@ -121,7 +121,8 @@ app.post('/api/products', async (req, res) => {
     }
     res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to write products' });
+    console.error('Failed to write products error:', error);
+    res.status(500).json({ error: 'Failed to write products', details: error.message });
   }
 });
 

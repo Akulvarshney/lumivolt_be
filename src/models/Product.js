@@ -8,7 +8,7 @@ const productSchema = new mongoose.Schema({
   colorLight: { type: String },
   colorDark: { type: String },
   path: { type: String, required: true },
-  image: { type: String, required: true },
+  image: { type: String },
   description: { type: String, required: true },
   overviewSpecs: [{
     label: String,
@@ -26,7 +26,9 @@ const productSchema = new mongoose.Schema({
     efficiencyValue: Number,
     lifespan: Number,
     carbonPayback: Number,
-    energyOutput: Number
+    energyOutput: Number,
+    co2SavedPerKwh: { type: Number, default: 0.4 },
+    costSavedPerKwh: { type: Number, default: 10 }
   },
   order: { type: Number, default: 0 }
 }, { timestamps: true });
