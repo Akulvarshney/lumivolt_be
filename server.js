@@ -11,7 +11,7 @@ import Policy from './src/models/Policy.js';
 import Product from './src/models/Product.js';
 import Gallery from './src/models/Gallery.js';
 import Download from './src/models/Download.js';
-
+import Director from './src/models/Director.js';
 dotenv.config();
 
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -314,6 +314,59 @@ app.delete('/api/downloads/:id', async (req, res) => {
   } catch (error) {
     console.error('Delete error:', error);
     res.status(500).json({ error: 'Failed to delete download item' });
+  }
+});
+
+// Get Directors
+app.get('/api/directors', async (req, res) => {
+  try {
+    const directors = await Director.find().sort({ order: 1 }).lean();
+    res.json(directors);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to read directors' });
+  }
+});
+
+// Update Directors
+app.post('/api/directors', async (req, res) => {
+  try {
+    const newDirectors = req.body;
+    await Director.deleteMany({});
+    if (newDirectors && newDirectors.length > 0) {
+      const sanitizedDirectors = newDirectors.map(({ _id, ...rest }, index) => ({
+        ...rest,
+        order: index
+      }));
+      await Director.insertMany(sanitizedDirectors);
+    }
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to write directors' });
+  }
+});
+
+// Delete Director
+app.delete('/api/directors/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const item = await Director.findOne({ id });
+
+    if (item) {
+      if (item.image && supabase) {
+        const parts = item.image.split('/');
+        const fileName = parts[parts.length - 1];
+        if (fileName && !fileName.includes('svg+xml')) {
+          await supabase.storage.from(supabaseBucket).remove([fileName]);
+        }
+      }
+      await Director.deleteOne({ id });
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ error: 'Director not found' });
+    }
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).json({ error: 'Failed to delete director' });
   }
 });
 
