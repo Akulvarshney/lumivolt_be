@@ -27,7 +27,8 @@ const productSchema = new mongoose.Schema({
     lifespan: Number,
     carbonPayback: Number,
     energyOutput: Number
-  }
+  },
+  order: { type: Number, default: 0 }
 }, { timestamps: true });
 
 const Product = mongoose.model('Product', productSchema);

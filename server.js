@@ -86,7 +86,7 @@ app.post('/api/policies', async (req, res) => {
 // Get Products
 app.get('/api/products', async (req, res) => {
   try {
-    const products = await Product.find().lean();
+    const products = await Product.find().sort({ order: 1 }).lean();
     res.json(products);
   } catch (error) {
     res.status(500).json({ error: 'Failed to read products' });
@@ -113,7 +113,10 @@ app.post('/api/products', async (req, res) => {
     const newProducts = req.body;
     await Product.deleteMany({});
     if (newProducts && newProducts.length > 0) {
-      const sanitizedProducts = newProducts.map(({ _id, ...rest }) => rest);
+      const sanitizedProducts = newProducts.map(({ _id, ...rest }, index) => ({
+        ...rest,
+        order: index
+      }));
       await Product.insertMany(sanitizedProducts);
     }
     res.json({ success: true });
