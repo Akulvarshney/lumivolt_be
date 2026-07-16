@@ -12,6 +12,7 @@ import Product from './src/models/Product.js';
 import Gallery from './src/models/Gallery.js';
 import Download from './src/models/Download.js';
 import Director from './src/models/Director.js';
+import Equipment from './src/models/Equipment.js';
 dotenv.config();
 
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -368,6 +369,53 @@ app.delete('/api/directors/:id', async (req, res) => {
   } catch (error) {
     console.error('Delete error:', error);
     res.status(500).json({ error: 'Failed to delete director' });
+  }
+});
+
+// Get Equipments
+app.get('/api/equipments', async (req, res) => {
+  try {
+    const equipments = await Equipment.find().sort({ order: 1 }).lean();
+    res.json(equipments);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to read equipments' });
+  }
+});
+
+// Update Equipments (Replace All)
+app.post('/api/equipments', async (req, res) => {
+  try {
+    const newEquipments = req.body;
+    await Equipment.deleteMany({});
+    if (newEquipments && newEquipments.length > 0) {
+      const sanitizedEquipments = newEquipments.map(({ _id, ...rest }, index) => ({
+        ...rest,
+        order: index
+      }));
+      await Equipment.insertMany(sanitizedEquipments);
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Failed to write equipments error:', error);
+    res.status(500).json({ error: 'Failed to write equipments', details: error.message });
+  }
+});
+
+// Delete Equipment
+app.delete('/api/equipments/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const item = await Equipment.findOne({ id });
+
+    if (item) {
+      await Equipment.deleteOne({ id });
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ error: 'Equipment not found' });
+    }
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).json({ error: 'Failed to delete equipment' });
   }
 });
 
